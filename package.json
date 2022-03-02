@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "start": "npm run build && vite preview"
+    "start": "npm run build && vite preview",
+    "start-remote": "vite --host"
   },
   "author": "",
   "license": "ISC",

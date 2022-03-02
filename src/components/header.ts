@@ -1,18 +1,9 @@
 import { LitElement, css, html } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
-import {
-  provideFluentDesignSystem,
-  fluentAnchor,
-} from "@fluentui/web-components";
-
-provideFluentDesignSystem()
-    .register(
-        fluentAnchor(),
-    );
 
 @customElement('app-header')
 export class AppHeader extends LitElement {
-  @property({ type: String }) title = 'PWA Starter';
+  @property({ type: String }) title = 'JustMusic';
 
   @property() enableBack: boolean = false;
 
@@ -25,6 +16,9 @@ export class AppHeader extends LitElement {
         background: var(--app-color-primary);
         color: white;
         height: 4em;
+
+        padding-left: 12px;
+        padding-right: 12px;
       }
 
       header h1 {
@@ -45,7 +39,7 @@ export class AppHeader extends LitElement {
         width: 11em;
       }
 
-      @media(prefers-color-scheme: light) {
+      @media (prefers-color-scheme: light) {
         header {
           color: black;
         }
@@ -71,10 +65,6 @@ export class AppHeader extends LitElement {
     return html`
       <header>
         <div id="back-button-block">
-          ${this.enableBack ? html`<fluent-anchor appearance="accent" href="/">
-            Back
-          </fluent-anchor>` : null}
-
           <h1>${this.title}</h1>
         </div>
       </header>

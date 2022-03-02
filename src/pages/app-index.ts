@@ -1,10 +1,13 @@
 import { LitElement, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/utilities/icon-library.js';
+
+import './app-home';
+
 import { Router } from '@vaadin/router';
 
-import './pages/app-home';
-import './components/header';
-import './styles/global.css';
+import '../components/header';
 
 @customElement('app-index')
 export class AppIndex extends LitElement {
@@ -65,12 +68,21 @@ export class AppIndex extends LitElement {
             path: '/about',
             component: 'app-about',
             action: async () => {
-              await import('./pages/app-about.js');
+              await import('./app-about.js');
             },
           },
         ],
       } as any,
     ]);
+
+    // @ts-ignore
+    console.log('registerIconLibrary', registerIconLibrary);
+    // @ts-ignore
+    registerIconLibrary('lucide', {
+      // @ts-ignore
+      resolver: (name) =>
+        `https://cdn.jsdelivr.net/npm/lucide-static@0.16.29/icons/${name}.svg`,
+    });
   }
 
   render() {
