@@ -12,7 +12,7 @@ export class MediaControls extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.handleMediaControls();
+    // this.handleMediaControls();
   }
 
   async handleMediaControls() {
@@ -23,6 +23,7 @@ export class MediaControls extends LitElement {
           'play',
           () => {
             this.doEvent('play');
+            console.log('play');
           },
         ],
         [
@@ -48,13 +49,7 @@ export class MediaControls extends LitElement {
           () => {
             this.doEvent('stop');
           },
-        ],
-        [
-          'seekbackward',
-          (details: any) => {
-            console.log('details', details); /* ... */
-          },
-        ],
+        ]
       ];
 
       for (const [action, handler] of actionHandlers) {

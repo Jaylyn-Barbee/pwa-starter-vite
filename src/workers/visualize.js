@@ -6,12 +6,12 @@ let ani;
 
 
 onmessage = (evt) => {
-    console.log(evt.data);
-
     if (evt.data.canvas) {
-        console.log("setting canvas", evt.data)
         canvas = evt.data.canvas;
         context = canvas.getContext("2d");
+
+        canvas.width = evt.data.width;
+        canvas.height = evt.data.height;
     }
 
     if (evt.data.data) {

@@ -9,14 +9,18 @@ import { shareSong } from "../services/utils";
 @customElement('music-item')
 export class MusicItem extends LitElement {
   @property() entry: any;
+  @property() kind: string | undefined;
+  @property() folderSongs: any;
 
   @state() expanded: any[] = [];
+
+  @state() file: any;
 
   static get styles() {
     return css`
             :host {
                 display: block;
-                border-radius: 6px;
+                border-radius: 8px;
             }
 
             li {
@@ -24,6 +28,9 @@ export class MusicItem extends LitElement {
                 padding: 8px;
                 font-size: 14px
                 cursor: pointer;
+
+                animation-name: fadeIn;
+                animation-duration: 300ms;
             }
 
             sl-card {
@@ -41,6 +48,16 @@ export class MusicItem extends LitElement {
                 margin-right: 8px;
             }
 
+            .directoryFolder {
+              padding: 10px;
+              padding-top: 16px;
+              margin-bottom: 8px;
+
+              background: #282731;
+              margin-top: 8px;
+              border-radius: 8px;
+            }
+
             @media(prefers-color-scheme: light) {
                 li {
                     background: #0000000f;
@@ -49,10 +66,17 @@ export class MusicItem extends LitElement {
                 sl-card {
                     --sl-panel-background-color: white;
                 }
+
+                .directoryFolder {
+                  background: #edededb5;
+                  color: black;
+                }
             }
 
             .title {
-              font-size: 20px;
+              font-size: 18px;
+              font-weight: bold;
+
               margin-left: 10px;
             }
 
@@ -61,7 +85,6 @@ export class MusicItem extends LitElement {
                 padding: 8px;
                 margin: 0;
 
-                border-top: solid 1px #181818;
                 margin-top: 8px;
             }
 
@@ -72,7 +95,7 @@ export class MusicItem extends LitElement {
 
                 background: #ffffff1a;
 
-                border-radius: 0px 6px 6px 0px;
+                border-radius: 0px 8px 8px 0px;
 
                 font-size: 14px;
                 cursor: pointer;
@@ -80,6 +103,16 @@ export class MusicItem extends LitElement {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+            }
+
+            @media(prefers-color-scheme: light) {
+              .innerList li {
+                background: white;
+              }
+
+              li.file {
+                background: #edededb5;
+              }
             }
 
             li span {
@@ -115,12 +148,29 @@ export class MusicItem extends LitElement {
                     margin-bottom: 14px;
                 }
             }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
         `;
   }
 
-  protected firstUpdated(): void {
-    if (this.entry && this.entry.kind === 'directory') {
-      this.expandFolder(this.entry);
+  protected async firstUpdated() {
+    // console.log("firstUpdated");
+    console.log(this.entry.kind)
+    console.log(' got a file', this.entry.name, this.entry.kind)
+    if (this.entry && this.kind && this.kind === 'directory') {
+      if (this.entry.name && this.entry.name.length > 0 ) {
+        console.log("expanding on load", this.kind);
+        await this.expandFolder(this.entry);
+      }
     }
   }
 
@@ -138,7 +188,7 @@ export class MusicItem extends LitElement {
   async expandFolder(folder: any): Promise<any> {
     const expanded = [];
 
-    console.log(folder);
+    console.log('folder', folder);
 
     for await (const entry of folder.values()) {
       console.log('entry', entry);
@@ -158,10 +208,24 @@ export class MusicItem extends LitElement {
     event.preventDefault();
   }
 
-  async removeItem(event: any, entry: any) {
+  async removeItem(event: any, entry: any, rootDir: any) {
     event.preventDefault();
     console.log("entry", entry);
-    await removeFromLib(entry);
+    console.log("rootDir", rootDir);
+
+    if (rootDir) {
+      await removeFromLib(entry, rootDir);
+
+      await this.expandFolder(rootDir);
+
+      if (this.expanded.length === 0) {
+        await rootDir.remove();
+      }
+
+    }
+    else {
+      await removeFromLib(entry);
+    }
 
     const eventToPush = new CustomEvent('reload', {
       detail: {
@@ -175,7 +239,7 @@ export class MusicItem extends LitElement {
 
   render() {
     return html`
-      <li
+      <!--<li
         class=${classMap({ file: this.entry.kind === 'file' })}
       >
         <span @click="${() => this.loadSong(this.entry)}" class=${classMap({ title: this.entry.kind === 'directory' })}
@@ -184,7 +248,7 @@ export class MusicItem extends LitElement {
 
         ${this.entry.kind === "file" ? html`<div id="inner-controls">
           <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, this.entry)}"></sl-icon-button>
-          <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, this.entry)}"></sl-icon-button>
+          <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, this.entry, undefined)}"></sl-icon-button>
         </div>` : null}
 
         ${this.expanded && this.expanded.length > 0
@@ -199,14 +263,54 @@ export class MusicItem extends LitElement {
 
                       <div id="inner-controls">
                         <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, entry)}"></sl-icon-button>
-                        <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, entry)}"></sl-icon-button>
+                        <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, entry, this.entry)}"></sl-icon-button>
                       </div>
                     </li>
                   `
               )}
             </ul>`
           : null}
-      </li>
+      </li>-->
+
+      ${
+        this.kind && this.entry.kind === 'directory' && this.entry && this.entry.name.length > 0 ? html `
+          <div class="directoryFolder">
+            <span @click="${() => this.loadSong(this.entry)}" class=${classMap({ title: this.entry.kind === 'directory' })}
+              >${this.entry.name}</span
+            >
+            <ul class="innerList">
+                ${this.expanded.map(
+                  (entry) =>
+                    html`
+                      <li
+                        aria-role="button"
+                      >
+                        <span @click="${() => this.loadSong(entry)}">${entry.name}</span>
+
+                        <div id="inner-controls">
+                          <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, entry)}"></sl-icon-button>
+                          <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, entry, this.entry)}"></sl-icon-button>
+                        </div>
+                      </li>
+                    `
+                )}
+              </ul>
+          </div>
+        ` :  html`
+        <li
+        class="file"
+      >
+          <span @click="${() => this.loadSong(this.entry)}"
+            >${this.entry.name}</span
+          >
+
+          <div id="inner-controls">
+            <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, this.entry)}"></sl-icon-button>
+            <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, this.entry, undefined)}"></sl-icon-button>
+          </div>
+        </li>
+        `
+      }
     `;
   }
 }

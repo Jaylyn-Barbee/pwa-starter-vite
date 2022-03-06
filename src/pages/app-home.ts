@@ -32,7 +32,6 @@ export class AppHome extends LitElement {
 
   // vars for music lib
   @state() music: any[] | undefined = undefined;
-  @state() expanded: any[] | undefined = undefined;
 
   @state() currentEntry: any = undefined;
 
@@ -82,6 +81,22 @@ export class AppHome extends LitElement {
         margin-left: 10px;
       }
 
+      #musicList ul {
+        border-radius: 8px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #center #musicList ul {
+          background: #100f1a;
+        }
+      }
+
+      @media(max-width: 1181px) {
+        #center #musicList ul {
+          height: 78vh;
+        }
+      }
+
       #musicGrid {
       }
 
@@ -107,7 +122,7 @@ export class AppHome extends LitElement {
         padding: 0;
         margin: 0;
 
-        height: 82vh;
+        height: 78vh;
         overflow-y: scroll;
         overflow-x: hidden;
       }
@@ -179,6 +194,10 @@ export class AppHome extends LitElement {
           grid-template-columns: 50vw 50vw;
         }
 
+        #center #musicList ul {
+          height: 81vh;
+        }
+
         #buttons {
           width: 46vw;
         }
@@ -202,7 +221,7 @@ export class AppHome extends LitElement {
         }
       }
 
-      @media (max-width: 716px) {
+      @media (max-width: 770px) {
         #center {
           height: 82vh;
           grid-template-columns: auto;
@@ -222,6 +241,8 @@ export class AppHome extends LitElement {
           margin: 0;
           padding: 0;
           padding-left: 10px;
+          margin-right: 14px;
+          margin-left: 4px;
         }
 
         #mobile-open {
@@ -307,18 +328,75 @@ export class AppHome extends LitElement {
 
   async load() {
     const music = await loadMusic();
-    console.log('music', music);
+    console.log('loaded music', music);
 
-    let entryArray = [];
+    let entryArray: any[] = [];
+
+    let potentialMusicArray: any[] = [];
+
+    this.music = undefined;
 
     for await (const entry of music.values()) {
-      entryArray.push(entry);
+      console.log('loadEntry', entry);
+
+      entryArray = [...entryArray, entry];
+      // entryArray.push(entry);
     }
 
     console.log('entryArray', entryArray);
 
+    // const root = await navigator.storage.getDirectory();
+
     if (entryArray && entryArray.length > 0) {
-      this.music = entryArray;
+      // this.music = [...entryArray];
+      entryArray.map(async (entry: any) => {
+        if (entry.kind === "file") {
+          console.log(entry);
+
+          const file = await entry.getFile();
+
+          const entryObject = {
+            file,
+            entry
+          }
+
+          potentialMusicArray = [...potentialMusicArray, entryObject];
+        }
+        else {
+          const values = await entry.values();
+
+          let folderSongs = []
+
+          // go through directory and push songs to folderSongs
+          for await (const value of values) {
+            folderSongs.push(value);
+            /*console.log(value);
+            const file = await value.getFile();
+            console.log(entry, file);
+
+            const entryObject = {
+              file,
+              entry
+            }
+
+            potentialMusicArray = [...potentialMusicArray, entryObject];*/
+          }
+
+          const entryObject = {
+            folderSongs,
+            entry
+          }
+          potentialMusicArray = [...potentialMusicArray, entryObject];
+
+          // this.music = potentialMusicArray;
+
+        }
+
+        console.log('potentialMusicArray', potentialMusicArray);
+        this.music = [...potentialMusicArray];
+      });
+
+      console.log('potentialMusicArray', potentialMusicArray);
     } else {
       await this.add("directory");
     }
@@ -327,6 +405,7 @@ export class AppHome extends LitElement {
   }
 
   async add(type: "file" | "directory") {
+    console.log(type);
     await addNewMusic(type);
 
     await this.load();
@@ -406,46 +485,166 @@ export class AppHome extends LitElement {
   playPrevious() {
     this.pause();
 
+    let index = 0;
+
     if (this.music && this.music.length > 0) {
       console.log('this.currentEntry', this.currentEntry);
       console.log('this.music', this.music);
-      const index = this.music.findIndex(
-        (entry) => entry.name === this.currentEntry.name
-      );
-      const prevIndex = index - 1;
 
-      if (prevIndex < this.music.length) {
-        console.log('this.music[nextIndex]', this.music[prevIndex]);
+      this.music.forEach((entry) => {
+        console.log('entry', entry.entry.kind);
+        console.log('entry.folderSongs', entry.folderSongs);
 
-        setTimeout(() => {
-          if (this.music) {
-            this.loadSong(this.music[prevIndex]);
+        if (entry.folderSongs) {
+          let potentialIndex = entry.folderSongs.findIndex(
+            (file: any) => file.name === this.currentEntry.name
+          );
+
+          console.log(potentialIndex)
+
+          if (potentialIndex > -1) {
+            index = potentialIndex
+
+            const nextIndex = index - 1;
+
+            console.log('nextIndex', nextIndex);
+
+
+            if (this.music && nextIndex < entry.folderSongs.length) {
+              console.log('entry.folderSongs[nextIndex]', entry.folderSongs[nextIndex]);
+
+              setTimeout(() => {
+                if (this.music) {
+                  this.loadSong(entry.folderSongs[nextIndex]);
+                }
+              }, 3000);
+
+              return;
+            }
           }
-        }, 3000);
-      }
+        }
+        else {
+          console.log('this.music 2', this.music);
+          console.log('file', this.currentEntry.name);
+          let potentialIndex = this.music?.findIndex(
+            (file: any) => file.file?.name === this.currentEntry.name
+          );
+
+          console.log('potentialIndex', potentialIndex);
+
+          if (potentialIndex !== undefined && potentialIndex > -1) {
+            index = potentialIndex
+
+            const nextIndex = index - 1;
+
+            console.log('music inside file', this.music);
+
+            if (this.music && nextIndex < this.music.length) {
+              console.log('this.music[nextIndex]', this.music[nextIndex].entry);
+
+              setTimeout(() => {
+                if (this.music) {
+                  this.loadSong(this.music[nextIndex].entry);
+                }
+              }, 3000);
+
+              return;
+            }
+          }
+        }
+      })
+
     }
   }
 
-  playNext() {
+  async playNext() {
     this.pause();
+
+    let index = 0;
 
     if (this.music && this.music.length > 0) {
       console.log('this.currentEntry', this.currentEntry);
       console.log('this.music', this.music);
-      const index = this.music.findIndex(
-        (entry) => entry.name === this.currentEntry.name
-      );
-      const nextIndex = index + 1;
 
-      if (nextIndex < this.music.length) {
-        console.log('this.music[nextIndex]', this.music[nextIndex]);
+      this.music.forEach((entry) => {
+        console.log('entry', entry.entry.kind);
+        console.log('entry.folderSongs', entry.folderSongs);
 
-        setTimeout(() => {
-          if (this.music) {
-            this.loadSong(this.music[nextIndex]);
+        if (entry.folderSongs) {
+          let potentialIndex = entry.folderSongs.findIndex(
+            (file: any) => file.name === this.currentEntry.name
+          );
+
+          console.log(potentialIndex)
+
+          if (potentialIndex > -1) {
+            index = potentialIndex
+
+            const nextIndex = index + 1;
+
+            console.log('nextIndex', nextIndex);
+
+
+            if (this.music && nextIndex < entry.folderSongs.length) {
+              console.log('entry.folderSongs[nextIndex]', entry.folderSongs[nextIndex]);
+
+              setTimeout(() => {
+                if (this.music) {
+                  this.loadSong(entry.folderSongs[nextIndex]);
+                }
+              }, 3000);
+
+              return;
+            }
           }
-        }, 3000);
-      }
+        }
+        else {
+          console.log('this.music 2', this.music);
+          console.log('file', this.currentEntry.name);
+          let potentialIndex = this.music?.findIndex(
+            (file: any) => file.file?.name === this.currentEntry.name
+          );
+
+          console.log('potentialIndex', potentialIndex);
+
+          if (potentialIndex !== undefined && potentialIndex > -1) {
+            index = potentialIndex
+
+            const nextIndex = index + 1;
+
+            console.log('music inside file', this.music);
+
+            if (this.music && nextIndex < this.music.length) {
+              console.log('this.music[nextIndex]', this.music[nextIndex].entry);
+
+              setTimeout(() => {
+                if (this.music) {
+                  this.loadSong(this.music[nextIndex].entry);
+                }
+              }, 3000);
+
+              return;
+            }
+          }
+        }
+      })
+
+    }
+  }
+
+  async stop() {
+    this.playing = false;
+
+    await this.updateComplete;
+
+    if (!this.audioEl) {
+      this.audioEl = this.shadowRoot?.querySelector('audio');
+    }
+
+    if (this.audioEl) {
+      await this.pause();
+
+      this.audioEl.currentTime = 0;
     }
   }
 
@@ -458,11 +657,35 @@ export class AppHome extends LitElement {
       this.audioEl = this.shadowRoot?.querySelector('audio');
     }
 
-    await setMedia(this.currentEntry);
-
     if (this.audioEl) {
       await this.audioEl.pause();
       await this.audioEl.play();
+
+      setMedia(this.currentEntry);
+
+      if (navigator.mediaSession) {
+        navigator.mediaSession.setActionHandler('play', async () => {
+          console.log('play');
+          await this.play();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', async () => {
+          console.log('pause');
+          await this.pause();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', async () => {
+          await this.playPrevious();
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', async () => {
+          await this.playNext();
+        });
+
+        navigator.mediaSession.setActionHandler('stop', async () => {
+          await this.stop();
+        })
+      }
 
       console.log(this.currentEntry);
 
@@ -498,8 +721,8 @@ export class AppHome extends LitElement {
 
     // this.draw(data, context, this.canvas, onscreenCanvas);
    if (onscreenCanvas) {
-      onscreenCanvas.width = window.innerWidth;
-      onscreenCanvas.height = window.innerHeight;
+      /*onscreenCanvas.width = window.innerWidth;
+      onscreenCanvas.height = window.innerHeight;*/
 
       //@ts-ignore
       const offscreen = onscreenCanvas.transferControlToOffscreen();
@@ -548,6 +771,8 @@ export class AppHome extends LitElement {
     );
     const openButton = this.shadowRoot?.querySelector('#mobile-open');
 
+    console.log("drawer", drawer);
+
     if (drawer) {
       openButton?.addEventListener('click', () => drawer.show());
     }
@@ -589,9 +814,11 @@ export class AppHome extends LitElement {
                   >
                     <ul>
                       ${this.music.map(
-                        (entry) => html`
+                        (song) => html`
                           <music-item
-                            .entry=${entry}
+                            .entry=${song.entry}
+                            .kind=${song.entry.kind}
+                            .folderSongs=${song.folderSongs}
                             @load-song="${($event: any) =>
                               this.loadSong($event.detail.song)}"
 
@@ -647,6 +874,7 @@ export class AppHome extends LitElement {
                     <div id="take-up-space">
                       <media-controls
                         @play="${() => this.play()}"
+                        @pause="${() => this.pause()}"
                       ></media-controls>
                     </div>
 
@@ -711,7 +939,9 @@ export class AppHome extends LitElement {
               ? this.music.map(
                   (entry) => html`
                     <music-item
-                      .entry=${entry}
+                      .entry=${entry.entry}
+                      .kind=${entry.entry.kind}
+                      .folderSongs=${entry.folderSongs}
                       @load-song="${($event: any) =>
                         this.loadSong($event.detail.song)}"
                     ></music-item>

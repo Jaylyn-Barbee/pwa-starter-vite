@@ -21,7 +21,8 @@ export async function shareSong(currentEntry: any | undefined): Promise<void> {
   }
 }
 
-export async function setMedia(currentEntry: any | undefined): Promise<void> {
+export function setMedia(currentEntry: any | undefined){
+  console.log('setting media');
   navigator.mediaSession.metadata = new MediaMetadata({
     title: currentEntry.name,
     artist: 'Not Available',
