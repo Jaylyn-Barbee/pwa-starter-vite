@@ -4,7 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    sourcemap: true
+    sourcemap: true,
+    assetsDir: "code",
     // rollupOptions: {
     //   external: [/^lit/,  /^@fluentui/, /^@microsoft\/fast/ ]
     // }
