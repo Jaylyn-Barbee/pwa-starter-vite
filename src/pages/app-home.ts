@@ -50,6 +50,56 @@ export class AppHome extends LitElement {
 
   static get styles() {
     return css`
+      #sideMenu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-left: 10px;
+        padding-top: 10px;
+        padding-right: 10px;
+        border-radius: 8px;
+      }
+
+      .visual-panel {
+        --size: 100%;
+      }
+
+      canvas {
+        border-radius: 8px;
+      }
+
+      .visual-panel::part(base) {
+        height: 98%;
+      }
+
+      .visual-panel::part(body) {
+        overflow-y: hidden;
+      }
+
+      .visual-panel::part(overlay) {
+        background-color: transparent;
+        // backdrop-filter: blur(18px);
+      }
+
+      .visual-panel::part(panel) {
+        background-color: rgb(16 15 26 / 90%);
+      }
+
+      @media(prefers-color-scheme: light) {
+        .visual-panel::part(panel) {
+          background-color: rgb(240 240 240 / 90%);
+        }
+      }
+
+      #mainGrid {
+        position: relative;
+      }
+
+      #sideMenu sl-button {
+        margin-bottom: 8px;
+        width: 100%;
+      }
+
       #musicControls {
         position: fixed;
         bottom: 0;
@@ -64,12 +114,16 @@ export class AppHome extends LitElement {
         align-items: center;
         backdrop-filter: blur(14px);
 
-        background: rgb(16 15 26);
+        background: rgb(10 9 24);
       }
 
       @media (prefers-color-scheme: light) {
         #musicControls {
           background: #0000000f;
+        }
+
+        #sideMenu {
+          background: #f0f0f0;
         }
       }
 
@@ -81,13 +135,20 @@ export class AppHome extends LitElement {
         margin-left: 10px;
       }
 
+      #musicList h2 {
+        margin-left: 16px;
+        font-size: 2.4em;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+
       #musicList ul {
         border-radius: 8px;
       }
 
       @media (prefers-color-scheme: dark) {
         #center #musicList ul {
-          background: #100f1a;
+          background: rgb(15 13 35);
         }
       }
 
@@ -110,7 +171,7 @@ export class AppHome extends LitElement {
 
       #center {
         display: grid;
-        grid-template-columns: 30vw 70vw;
+        grid-template-columns: 22vw 78vw;
       }
 
       #center.playing {
@@ -119,12 +180,19 @@ export class AppHome extends LitElement {
 
       #center ul {
         list-style: none;
-        padding: 0;
+        padding: 8px;
+        padding-left: 16px;
         margin: 0;
 
-        height: 78vh;
+        height: 82vh;
         overflow-y: scroll;
         overflow-x: hidden;
+
+        grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+        grid-auto-rows: max-content;
+        display: grid;
+        gap: 10px;
+        row-gap: 0px;
       }
 
       #center ul::-webkit-scrollbar {
@@ -138,17 +206,21 @@ export class AppHome extends LitElement {
       }
 
       #preview {
-        height: 50vh;
-        width: 100vw;
         display: flex;
         align-items: center;
-        justify-content: center;
+
+        flex-direction: column;
+        height: 38em;
+        justify-content: space-evenly;
+      }
+
+      #preview img {
+        width: 50%;
       }
 
       canvas {
-        height: 100%;
+        height: 99.4%;
         width: 100%;
-        border-radius: 8px;
       }
 
       #musicControls span {
@@ -227,6 +299,14 @@ export class AppHome extends LitElement {
           grid-template-columns: auto;
         }
 
+        .visual-panel::part(base) {
+          height: 95%;
+        }
+
+        #sideMenu {
+          display: none;
+        }
+
         sl-drawer {
           --size: 44rem;
         }
@@ -246,26 +326,17 @@ export class AppHome extends LitElement {
         }
 
         #mobile-open {
-          display: initial;
+          display: none;
           position: fixed;
           bottom: 6.5em;
           left: 8px;
           right: 8px;
         }
 
-        #musicList {
-          overflow: hidden;
-          grid-row: 2;
-
-          z-index: 1;
-        }
-
-        #musicList {
-          display: none;
-        }
-
         #center ul {
           height: 60vh;
+
+          padding: 4px;
         }
 
         #visuals img {
@@ -334,9 +405,9 @@ export class AppHome extends LitElement {
 
     let potentialMusicArray: any[] = [];
 
-    this.music = undefined;
+    // this.music = undefined;
 
-    for await (const entry of music.values()) {
+    for await (const entry of (music as any).values()) {
       console.log('loadEntry', entry);
 
       entryArray = [...entryArray, entry];
@@ -517,7 +588,7 @@ export class AppHome extends LitElement {
                 if (this.music) {
                   this.loadSong(entry.folderSongs[nextIndex]);
                 }
-              }, 3000);
+              }, 1000);
 
               return;
             }
@@ -546,7 +617,7 @@ export class AppHome extends LitElement {
                 if (this.music) {
                   this.loadSong(this.music[nextIndex].entry);
                 }
-              }, 3000);
+              }, 1000);
 
               return;
             }
@@ -592,7 +663,7 @@ export class AppHome extends LitElement {
                 if (this.music) {
                   this.loadSong(entry.folderSongs[nextIndex]);
                 }
-              }, 3000);
+              }, 1000);
 
               return;
             }
@@ -621,7 +692,7 @@ export class AppHome extends LitElement {
                 if (this.music) {
                   this.loadSong(this.music[nextIndex].entry);
                 }
-              }, 3000);
+              }, 1000);
 
               return;
             }
@@ -696,6 +767,8 @@ export class AppHome extends LitElement {
       if (drawer) {
         drawer.hide();
       }
+
+      await this.openVisuals();
     }
   }
 
@@ -765,6 +838,20 @@ export class AppHome extends LitElement {
     }
   }
 
+  async openVisuals() {
+    const drawer: any = this.shadowRoot?.querySelector(
+      '.visual-panel'
+    );
+    // const openButton = this.shadowRoot?.querySelector('#mobile-open');
+
+    console.log("drawer", drawer);
+
+    if (drawer) {
+      await drawer.show();
+    }
+    // closeButton.addEventListener('click', () => drawer.hide());
+  }
+
   openMobileMusic() {
     const drawer: any = this.shadowRoot?.querySelector(
       '.drawer-placement-bottom'
@@ -782,6 +869,8 @@ export class AppHome extends LitElement {
   render() {
     return html`
       <app-header></app-header>
+
+      <audio autoplay></audio>
 
       <div id="mainGrid">
         <div id="controlBar">
@@ -802,11 +891,18 @@ export class AppHome extends LitElement {
         </div>
 
         <div class=${classMap({ playing: !this.playing })} id="center">
+          <section id="sideMenu">
+            <sl-button href="/">My Music</sl-button>
+            <sl-button href="/">Settings</sl-button>
+          </section>
+
           <section id="musicList">
+            <h2>Music</h2>
+
             ${this.music && this.music.length > 0
               ? html`
                   <sl-animation
-                    name="fadeInLeft"
+                    name="fadeIn"
                     easing="ease-in-out"
                     duration="400"
                     iterations="1"
@@ -830,6 +926,17 @@ export class AppHome extends LitElement {
                   </sl-animation>
                 `
               : html`<div id="preview">
+                  ${this.playing === false
+                  ? html`<sl-animation
+                      name="fadeIn"
+                      easing="ease-in-out"
+                      duration="800"
+                      iterations="1"
+                      play
+                      ><img src="/assets/playing-graphic.svg"
+                    /></sl-animation>`
+                  : null}
+
                   <sl-button
                     size="small"
                     variant="primary"
@@ -839,7 +946,7 @@ export class AppHome extends LitElement {
                 </div>`}
           </section>
 
-          <section id="visuals">
+          <!--<section id="visuals">
             ${this.playing === false
               ? html`<sl-animation
                   name="fadeIn"
@@ -851,7 +958,7 @@ export class AppHome extends LitElement {
                 /></sl-animation>`
               : null}
             ${this.playing === true ? html`<canvas></canvas>` : null}
-          </section>
+          </section>-->
         </div>
 
         <sl-animation
@@ -865,8 +972,6 @@ export class AppHome extends LitElement {
             <div id="textDiv">
               <span>${this.currentEntry?.name || 'No Music Playing...'}</span>
             </div>
-
-            <audio autoplay></audio>
 
             ${this.music && this.music.length > 0
               ? html`
@@ -913,7 +1018,7 @@ export class AppHome extends LitElement {
                       </sl-button>
                     </sl-button-group>
 
-                    <sl-button @click="${() => this.share()}">
+                    <sl-button ?disabled="${!this.playing}" @click="${() => this.share()}">
                       <sl-icon src="/assets/icons/share-outline.svg"></sl-icon>
                     </sl-button>
                   </div>
@@ -928,6 +1033,12 @@ export class AppHome extends LitElement {
           @click="${() => this.openMobileMusic()}"
           >Open Music</sl-button
         >
+
+        <sl-drawer
+          contained
+          placement="bottom" class="visual-panel">
+          ${this.playing === true ? html`<canvas></canvas>` : null}
+        </sl-drawer>
 
         <sl-drawer
           label="My Music"

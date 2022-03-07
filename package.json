@@ -12,18 +12,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pwabuilder/pwainstall": "^1.6.7",
     "@fluentui/web-components": "^2.2.2",
+    "@pwabuilder/pwainstall": "^1.6.7",
     "@vaadin/router": "^1.7.4",
+    "browser-fs-access": "^0.25.0",
     "lit": "^2.2.0",
     "workbox-build": "^6.4.2",
     "workbox-core": "^6.4.2",
     "workbox-precaching": "^6.4.2"
   },
   "devDependencies": {
+    "typescript": "4.3.5",
     "vite": "^2.8.0",
-    "vite-plugin-pwa": "^0.11.13",
-    "typescript": "4.3.5"
+    "vite-plugin-pwa": "^0.11.13"
   },
   "prettier": {
     "tabWidth": 2,
