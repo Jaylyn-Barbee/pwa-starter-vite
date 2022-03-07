@@ -150,7 +150,30 @@ export class AppHome extends LitElement {
 
       @media(max-width: 1181px) {
         #center #musicList ul {
-          height: 78vh;
+          height: 70vh;
+        }
+      }
+
+      @media (max-width: 400px) {
+        #musicList h2 {
+          margin-left: 4px;
+        }
+      }
+
+      @media(max-width: 380px) {
+        #center #musicList ul {
+          height: 60vh;
+        }
+      }
+
+      @media(max-width: 340px) {
+        #musicList h2 {
+          display: none;
+        }
+
+        #musicControls {
+          padding-left: 4px;
+          padding-right: 4px;
         }
       }
 
@@ -180,7 +203,7 @@ export class AppHome extends LitElement {
         padding-left: 16px;
         margin: 0;
 
-        height: 82vh;
+        height: 74vh;
         overflow-y: scroll;
         overflow-x: hidden;
 
@@ -973,6 +996,10 @@ export class AppHome extends LitElement {
                         @play="${() => this.play()}"
                         @pause="${() => this.pause()}"
                       ></media-controls>
+
+                      <sl-button @click="${() => this.openVisuals()}">
+                        <sl-icon src="/assets/up-arrow.svg"></sl-icon>
+                      </sl-button>
                     </div>
 
                     <sl-button-group>
@@ -1028,7 +1055,7 @@ export class AppHome extends LitElement {
 
         <sl-drawer
           placement="bottom" class="visual-panel">
-          ${this.playing === true ? html`<canvas></canvas>` : null}
+          ${this.playing === true ? html`<canvas></canvas>` : "Nothing Playing..."}
         </sl-drawer>
 
         <sl-drawer
