@@ -28,6 +28,7 @@ export const loadMusic = async () => {
     }
   } catch (error: any) {
     console.error(error);
+    return error;
   }
 };
 
