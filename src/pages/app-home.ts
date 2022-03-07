@@ -68,10 +68,6 @@ export class AppHome extends LitElement {
         border-radius: 8px;
       }
 
-      .visual-panel::part(base) {
-        height: 98%;
-      }
-
       .visual-panel::part(body) {
         overflow-y: hidden;
       }
@@ -297,10 +293,6 @@ export class AppHome extends LitElement {
         #center {
           height: 82vh;
           grid-template-columns: auto;
-        }
-
-        .visual-panel::part(base) {
-          height: 95%;
         }
 
         #sideMenu {
@@ -1035,7 +1027,6 @@ export class AppHome extends LitElement {
         >
 
         <sl-drawer
-          contained
           placement="bottom" class="visual-panel">
           ${this.playing === true ? html`<canvas></canvas>` : null}
         </sl-drawer>
