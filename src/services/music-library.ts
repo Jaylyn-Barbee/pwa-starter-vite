@@ -64,17 +64,33 @@ export async function addNewMusic(type: "file" | "directory") {
     /*const fileHandle1 = await (window as any).showOpenFilePicker();
     console.log("fileHandle1", fileHandle1);*/
 
-    const fileHandle = await fileOpen({
-      mimeTypes: ["audio/*"],
-    });
+    try {
+      const fileHandle = await fileOpen({
+        mimeTypes: ["audio/*"],
+      });
 
-    const handleObject = {
-      kind: "file",
-      name: fileHandle.name,
+      console.log("fileHandle", fileHandle);
+
+      const handleObject = {
+        kind: "file",
+        name: fileHandle.name,
+      }
+
+      await addMusicToLib(fileHandle.handle || handleObject, type);
+      return fileHandle.handle || handleObject;
     }
+    catch (err) {
+      if(navigator.storage && "getDirectory" in navigator.storage) {
+        const root = await navigator.storage.getDirectory();
 
-    await addMusicToLib(fileHandle.handle || handleObject, type);
-    return fileHandle.handle || handleObject;
+        const fileHandle = await root.getFileHandle("music.mp3", {
+          create: true
+        });
+
+        await addMusicToLib(fileHandle, type);
+        return fileHandle;
+      }
+    }
   }
 }
 
