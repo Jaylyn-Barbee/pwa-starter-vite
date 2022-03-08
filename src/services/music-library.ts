@@ -86,6 +86,8 @@ export async function addNewMusic(type: "file" | "directory") {
           create: true
         });
 
+        console.log("fileHandle safari", fileHandle);
+
         await addMusicToLib(fileHandle, type);
         return fileHandle;
     }
