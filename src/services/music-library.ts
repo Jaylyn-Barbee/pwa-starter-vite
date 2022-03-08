@@ -182,7 +182,7 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
     }
   }*/
 
-  if (type === "file") {
+  if (type === "file" && "showOpenFilePicker" in window) {
     console.log('adding file', handle);
     const root = await (navigator.storage as any).getDirectory();
     const newFileHandle = await root.getFileHandle(handle.name, {
@@ -195,7 +195,7 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
     // Close the file and write the contents to disk.
     await writable.close();
   }
-  else if (type === "directory") {
+  else if (type === "directory" && "showDirectoryPicker" in window) {
     console.log('adding directory');
     const root = await (navigator.storage as any).getDirectory();
 
@@ -213,5 +213,13 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
         await writable.close();
       }
     }
+  }
+  else {
+    // for safari
+    const writable = await handle.createWritable();
+    // Write the contents of the file to the stream.
+    await writable.write(await handle.getFile());
+    // Close the file and write the contents to disk.
+    await writable.close();
   }
 }
