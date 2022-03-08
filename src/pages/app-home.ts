@@ -484,7 +484,7 @@ export class AppHome extends LitElement {
 
       console.log('potentialMusicArray', potentialMusicArray);
     } else {
-      await this.add("directory");
+      await this.add("file");
     }
 
     this.setupListeners();
