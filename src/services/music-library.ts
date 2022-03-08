@@ -55,7 +55,7 @@ export async function addNewMusic(type: "file" | "directory") {
     await addMusicToLib(dirHandle[0].directoryHandle || handleObject, type);
     return dirHandle[0].directoryHandle || handleObject;
   }
-  else {
+  else if (type === "file") {
     /*const fileHandle = await (window as any).showOpenFilePicker();
     console.log("fileHandle", fileHandle);
     await addMusicToLib(fileHandle, type);
@@ -80,7 +80,6 @@ export async function addNewMusic(type: "file" | "directory") {
       return fileHandle.handle || handleObject;
     }
     catch (err) {
-      if(navigator.storage && "getDirectory" in navigator.storage) {
         const root = await navigator.storage.getDirectory();
 
         const fileHandle = await root.getFileHandle("music.mp3", {
@@ -89,8 +88,10 @@ export async function addNewMusic(type: "file" | "directory") {
 
         await addMusicToLib(fileHandle, type);
         return fileHandle;
-      }
     }
+  }
+  else {
+    return undefined;
   }
 }
 
