@@ -97,6 +97,8 @@ export async function addNewMusic(type: "file" | "directory") {
       create: true
     });
 
+    console.log("fileHandle safari", fileHandle);
+
     await addMusicToLib(fileHandle, type);
     return fileHandle;
   }
@@ -216,6 +218,7 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
   }
   else {
     // for safari
+
     const writable = await handle.createWritable();
     // Write the contents of the file to the stream.
     await writable.write(await handle.getFile());
