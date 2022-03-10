@@ -17,7 +17,7 @@ export class AppHeader extends LitElement {
         color: white;
         height: 4em;
 
-        padding-left: 12px;
+        padding-left: 26px;
         padding-right: 12px;
       }
 

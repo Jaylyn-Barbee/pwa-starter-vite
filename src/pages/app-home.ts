@@ -1,28 +1,26 @@
-import { LitElement, css, html } from 'lit';
-import { property, customElement, state } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
-
 // For more info on the @pwabuilder/pwainstall component click here https://github.com/pwa-builder/pwa-install
 import '@pwabuilder/pwainstall';
-import { addNewMusic, loadMusic } from '../services/music-library';
-
-import '../components/music-item';
-import '../components/media-controls';
-
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/button/button.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/animation/animation.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/button-group/button-group.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/button/button.js';
 // import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.70/dist/components/icon-button/icon-button.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/card/card.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/animation/animation.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/button-group/button-group.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/drawer/drawer.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/menu/menu.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/menu-item/menu-item.js';
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/dropdown/dropdown.js';
-
-import { setMedia, shareSong } from '../services/utils';
-
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/card/card.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/drawer/drawer.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/dropdown/dropdown.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/menu-item/menu-item.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/menu/menu.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/tooltip/tooltip.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/dropdown/dropdown.js';
+import { css, html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
+import '../components/media-controls';
+import '../components/music-item';
+import '../components/theme-settings';
+import { addNewMusic, loadMusic } from '../services/music-library';
+import { findSong, setMedia, shareSong } from '../services/utils';
 // @ts-ignore
-import Worker from '../workers/visualize.js?worker'
+import Worker from '../workers/visualize.js?worker';
 
 @customElement('app-home')
 export class AppHome extends LitElement {
@@ -41,12 +39,15 @@ export class AppHome extends LitElement {
   source: any;
   audioContext: any;
   canvas: any;
+  onScreenCanvas: any;
+  offscreen: any;
   ani: number | undefined;
   handle: any;
 
   anWorker: Worker;
 
   audioEl: HTMLAudioElement | null | undefined;
+  videoEl: HTMLVideoElement | null | undefined;
 
   static get styles() {
     return css`
@@ -58,6 +59,10 @@ export class AppHome extends LitElement {
         padding-top: 10px;
         padding-right: 10px;
         border-radius: 8px;
+      }
+
+      #take-up-space {
+        width: 123px;
       }
 
       .visual-panel {
@@ -81,7 +86,7 @@ export class AppHome extends LitElement {
         background-color: rgb(16 15 26 / 90%);
       }
 
-      @media(prefers-color-scheme: light) {
+      @media (prefers-color-scheme: light) {
         .visual-panel::part(panel) {
           background-color: rgb(240 240 240 / 90%);
         }
@@ -148,7 +153,7 @@ export class AppHome extends LitElement {
         }
       }
 
-      @media(max-width: 1181px) {
+      @media (max-width: 1181px) {
         #center #musicList ul {
           height: 70vh;
         }
@@ -160,13 +165,13 @@ export class AppHome extends LitElement {
         }
       }
 
-      @media(max-width: 380px) {
+      @media (max-width: 380px) {
         #center #musicList ul {
           height: 60vh;
         }
       }
 
-      @media(max-width: 340px) {
+      @media (max-width: 340px) {
         #musicList h2 {
           display: none;
         }
@@ -183,18 +188,18 @@ export class AppHome extends LitElement {
       #controlBar {
         display: flex;
         position: fixed;
+        justify-content: space-between;
+
         top: 12px;
         right: 0;
         padding-right: 12px;
       }
 
-      #center {
-        display: grid;
-        grid-template-columns: 22vw 78vw;
+      #settingsGroup {
+        margin-right: 8px;
       }
 
       #center.playing {
-
       }
 
       #center ul {
@@ -266,8 +271,8 @@ export class AppHome extends LitElement {
         justify-content: space-between;
       }
 
-      #take-up-space {
-        width: 62px;
+      #up-space {
+        width: 130px;
       }
 
       @media (prefers-color-scheme: light) {
@@ -280,13 +285,51 @@ export class AppHome extends LitElement {
         }
       }
 
+      .visual-panel::part(base) {
+        bottom: 5em;
+        height: calc(var(--size) - 5em);
+      }
+
+      .visual-panel::part(overlay) {
+        bottom: 4em;
+        height: calc(var(--size) - 5em);
+      }
+
+      .visual-panel::part(panel) {
+        bottom: 1em;
+        height: calc(var(--size) - 5em);
+      }
+
       @media (horizontal-viewport-segments: 2) {
         #center {
+          display: grid;
           grid-template-columns: 50vw 50vw;
         }
 
+        sl-drawer::part(base) {
+          width: 49vw;
+          left: 51vw;
+          right: 0;
+
+          bottom: 4em;
+          height: calc(var(--size) - 4em);
+        }
+
+        sl-drawer::part(overlay) {
+          width: 49vw;
+          left: 51vw;
+          right: 0;
+
+          bottom: 4em;
+          height: calc(var(--size) - 4em);
+        }
+
+        sl-drawer::part(panel) {
+          height: calc(var(--size) - 4em);
+        }
+
         #center #musicList ul {
-          height: 81vh;
+          height: 70vh;
         }
 
         #buttons {
@@ -392,6 +435,14 @@ export class AppHome extends LitElement {
   }
 
   async firstUpdated() {
+    const color = localStorage.getItem("themePrimaryColor");
+    console.log('primaryColor', color);
+    if (color) {
+
+      document.documentElement.style.setProperty('--sl-color-primary-500', color);
+      document.documentElement.style.setProperty('--sl-color-primary-600', color);
+    }
+
     // this method is a lifecycle even in lit
     // for more info check out the lit docs https://lit.dev/docs/components/lifecycle/
     console.log('This is your home page');
@@ -412,7 +463,7 @@ export class AppHome extends LitElement {
     await shareSong(this.currentEntry);
   }
 
-  async load() {
+  async load(): Promise<void> {
     const music = await loadMusic();
     console.log('loaded music', music);
 
@@ -420,13 +471,10 @@ export class AppHome extends LitElement {
 
     let potentialMusicArray: any[] = [];
 
-    // this.music = undefined;
-
     for await (const entry of (music as any).values()) {
       console.log('loadEntry', entry);
 
       entryArray = [...entryArray, entry];
-      // entryArray.push(entry);
     }
 
     console.log('entryArray', entryArray);
@@ -436,46 +484,32 @@ export class AppHome extends LitElement {
     if (entryArray && entryArray.length > 0) {
       // this.music = [...entryArray];
       entryArray.map(async (entry: any) => {
-        if (entry.kind === "file") {
+        if (entry.kind === 'file') {
           console.log(entry);
 
           const file = await entry.getFile();
 
           const entryObject = {
             file,
-            entry
-          }
+            entry,
+          };
 
           potentialMusicArray = [...potentialMusicArray, entryObject];
-        }
-        else {
+        } else {
           const values = await entry.values();
 
-          let folderSongs = []
+          let folderSongs = [];
 
           // go through directory and push songs to folderSongs
           for await (const value of values) {
             folderSongs.push(value);
-            /*console.log(value);
-            const file = await value.getFile();
-            console.log(entry, file);
-
-            const entryObject = {
-              file,
-              entry
-            }
-
-            potentialMusicArray = [...potentialMusicArray, entryObject];*/
           }
 
           const entryObject = {
             folderSongs,
-            entry
-          }
+            entry,
+          };
           potentialMusicArray = [...potentialMusicArray, entryObject];
-
-          // this.music = potentialMusicArray;
-
         }
 
         console.log('potentialMusicArray', potentialMusicArray);
@@ -484,13 +518,13 @@ export class AppHome extends LitElement {
 
       console.log('potentialMusicArray', potentialMusicArray);
     } else {
-      await this.add("file");
+      await this.add('file');
     }
 
     this.setupListeners();
   }
 
-  async add(type: "file" | "directory") {
+  async add(type: 'file' | 'directory') {
     console.log(type);
     await addNewMusic(type);
 
@@ -552,7 +586,9 @@ export class AppHome extends LitElement {
           (window as any).webkitAudioContext)();
 
         if (!this.source && !this.analyser) {
-          this.source = this.audioContext.createMediaElementSource(this.audioEl);
+          this.source = this.audioContext.createMediaElementSource(
+            this.audioEl
+          );
           this.analyser = this.audioContext.createAnalyser();
 
           this.source.connect(this.analyser);
@@ -568,153 +604,42 @@ export class AppHome extends LitElement {
     }
   }
 
-  playPrevious() {
+  async playPrevious() {
     this.pause();
-
-    let index = 0;
 
     if (this.music && this.music.length > 0) {
       console.log('this.currentEntry', this.currentEntry);
       console.log('this.music', this.music);
 
-      this.music.forEach((entry) => {
-        console.log('entry', entry.entry.kind);
-        console.log('entry.folderSongs', entry.folderSongs);
+      const song = await findSong(this.music, this.currentEntry, 'previous');
+      console.log('song', song);
 
-        if (entry.folderSongs) {
-          let potentialIndex = entry.folderSongs.findIndex(
-            (file: any) => file.name === this.currentEntry.name
-          );
-
-          console.log(potentialIndex)
-
-          if (potentialIndex > -1) {
-            index = potentialIndex
-
-            const nextIndex = index - 1;
-
-            console.log('nextIndex', nextIndex);
-
-
-            if (this.music && nextIndex < entry.folderSongs.length) {
-              console.log('entry.folderSongs[nextIndex]', entry.folderSongs[nextIndex]);
-
-              setTimeout(() => {
-                if (this.music) {
-                  this.loadSong(entry.folderSongs[nextIndex]);
-                }
-              }, 1000);
-
-              return;
-            }
-          }
+      setTimeout(() => {
+        if (this.music) {
+          console.log('song', song);
+          this.loadSong(song);
         }
-        else {
-          console.log('this.music 2', this.music);
-          console.log('file', this.currentEntry.name);
-          let potentialIndex = this.music?.findIndex(
-            (file: any) => file.file?.name === this.currentEntry.name
-          );
+      }, 1000);
 
-          console.log('potentialIndex', potentialIndex);
-
-          if (potentialIndex !== undefined && potentialIndex > -1) {
-            index = potentialIndex
-
-            const nextIndex = index - 1;
-
-            console.log('music inside file', this.music);
-
-            if (this.music && nextIndex < this.music.length) {
-              console.log('this.music[nextIndex]', this.music[nextIndex].entry);
-
-              setTimeout(() => {
-                if (this.music) {
-                  this.loadSong(this.music[nextIndex].entry);
-                }
-              }, 1000);
-
-              return;
-            }
-          }
-        }
-      })
-
+      return;
     }
   }
 
   async playNext() {
     this.pause();
 
-    let index = 0;
-
     if (this.music && this.music.length > 0) {
       console.log('this.currentEntry', this.currentEntry);
       console.log('this.music', this.music);
 
-      this.music.forEach((entry) => {
-        console.log('entry', entry.entry.kind);
-        console.log('entry.folderSongs', entry.folderSongs);
+      const song = await findSong(this.music, this.currentEntry, 'next');
 
-        if (entry.folderSongs) {
-          let potentialIndex = entry.folderSongs.findIndex(
-            (file: any) => file.name === this.currentEntry.name
-          );
-
-          console.log(potentialIndex)
-
-          if (potentialIndex > -1) {
-            index = potentialIndex
-
-            const nextIndex = index + 1;
-
-            console.log('nextIndex', nextIndex);
-
-
-            if (this.music && nextIndex < entry.folderSongs.length) {
-              console.log('entry.folderSongs[nextIndex]', entry.folderSongs[nextIndex]);
-
-              setTimeout(() => {
-                if (this.music) {
-                  this.loadSong(entry.folderSongs[nextIndex]);
-                }
-              }, 1000);
-
-              return;
-            }
-          }
+      setTimeout(() => {
+        if (this.music) {
+          console.log('song', song);
+          this.loadSong(song);
         }
-        else {
-          console.log('this.music 2', this.music);
-          console.log('file', this.currentEntry.name);
-          let potentialIndex = this.music?.findIndex(
-            (file: any) => file.file?.name === this.currentEntry.name
-          );
-
-          console.log('potentialIndex', potentialIndex);
-
-          if (potentialIndex !== undefined && potentialIndex > -1) {
-            index = potentialIndex
-
-            const nextIndex = index + 1;
-
-            console.log('music inside file', this.music);
-
-            if (this.music && nextIndex < this.music.length) {
-              console.log('this.music[nextIndex]', this.music[nextIndex].entry);
-
-              setTimeout(() => {
-                if (this.music) {
-                  this.loadSong(this.music[nextIndex].entry);
-                }
-              }, 1000);
-
-              return;
-            }
-          }
-        }
-      })
-
+      }, 1000);
     }
   }
 
@@ -753,27 +678,43 @@ export class AppHome extends LitElement {
         navigator.mediaSession.setActionHandler('play', async () => {
           console.log('play');
           await this.play();
+
+          if (this.videoEl) {
+            this.videoEl.play();
+          }
         });
 
         navigator.mediaSession.setActionHandler('pause', async () => {
           console.log('pause');
           await this.pause();
+
+          if (this.videoEl) {
+            this.videoEl.pause();
+          }
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', async () => {
           await this.playPrevious();
+          if (this.videoEl) {
+            this.videoEl.play();
+          }
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', async () => {
           await this.playNext();
+          if (this.videoEl) {
+            this.videoEl.play();
+          }
         });
 
         navigator.mediaSession.setActionHandler('stop', async () => {
           await this.stop();
-        })
-      }
 
-      console.log(this.currentEntry);
+          if (this.videoEl) {
+            this.videoEl.pause();
+          }
+        });
+      }
 
       const drawer: any = this.shadowRoot?.querySelector(
         '.drawer-placement-bottom'
@@ -788,17 +729,9 @@ export class AppHome extends LitElement {
   }
 
   runVisual(data: Uint8Array) {
-    let onscreenCanvas = null;
+    this.onScreenCanvas = null;
 
-    /*if ('OffscreenCanvas' in window) {
-      onscreenCanvas = this.shadowRoot
-        ?.querySelector('canvas')
-        ?.getContext('bitmaprenderer');
-    } else {
-      onscreenCanvas = this.shadowRoot?.querySelector('canvas');
-    }*/
-
-    onscreenCanvas = this.shadowRoot?.querySelector('canvas');
+    this.onScreenCanvas = this.shadowRoot?.querySelector('canvas');
 
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
@@ -807,35 +740,67 @@ export class AppHome extends LitElement {
 
     context?.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // this.draw(data, context, this.canvas, onscreenCanvas);
-   if (onscreenCanvas) {
-      /*onscreenCanvas.width = window.innerWidth;
-      onscreenCanvas.height = window.innerHeight;*/
+    if (this.onScreenCanvas) {
+      if (!this.offscreen) {
+        this.offscreen = this.onScreenCanvas.transferControlToOffscreen();
 
-      //@ts-ignore
-      const offscreen = onscreenCanvas.transferControlToOffscreen();
-      if (!this.anWorker) {
-        this.anWorker = new Worker();
+        if (!this.anWorker) {
+          this.anWorker = new Worker();
+        }
+
+        this.anWorker.postMessage(
+          {
+            canvas: this.offscreen,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          },
+          [this.offscreen]
+        );
       }
 
-      this.anWorker.postMessage({canvas: offscreen, width: window.innerWidth, height: window.innerHeight}, [offscreen]);
+      console.log(this.offscreen);
+
+      if (!this.videoEl) {
+        this.doStreamForMiniPlayer();
+      }
 
       requestAnimationFrame(() => {
         this.postData(data);
-      })
+      });
+    }
+  }
+
+  doStreamForMiniPlayer() {
+    console.log('dostream called');
+    this.videoEl = document.createElement('video');
+    console.log(this.videoEl);
+    this.videoEl.muted = true;
+  }
+
+  async enterMiniPlayer() {
+    if (this.videoEl) {
+      this.videoEl.srcObject = (
+        this.onScreenCanvas as HTMLCanvasElement
+      ).captureStream();
+      await this.videoEl.play();
+
+      await this.videoEl.requestPictureInPicture();
     }
   }
 
   postData(data: Uint8Array) {
     this.analyser?.getByteFrequencyData(data);
 
-    this.anWorker.postMessage({data: data, width: window.innerWidth, height: window.innerHeight});
+    this.anWorker.postMessage({
+      data: data,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
 
     this.ani = requestAnimationFrame(this.postData.bind(this, data));
   }
 
   async pause() {
-
     this.playing = false;
 
     await this.updateComplete;
@@ -846,25 +811,31 @@ export class AppHome extends LitElement {
 
     if (this.audioEl) {
       this.audioEl.pause();
+    }
 
-      /*navigator.mediaSession.metadata = new MediaMetadata({
-        title: this.currentEntry.name
-      });*/
+    if (this.videoEl) {
+      this.videoEl.pause();
     }
   }
 
   async openVisuals() {
-    const drawer: any = this.shadowRoot?.querySelector(
-      '.visual-panel'
-    );
+    const drawer: any = this.shadowRoot?.querySelector('.visual-panel');
     // const openButton = this.shadowRoot?.querySelector('#mobile-open');
 
-    console.log("drawer", drawer);
+    console.log('drawer', drawer);
 
     if (drawer) {
       await drawer.show();
     }
     // closeButton.addEventListener('click', () => drawer.hide());
+  }
+
+  async customizeThemeColor() {
+    const drawer: any = this.shadowRoot?.querySelector("#theme-settings-drawer");
+
+    if (drawer) {
+      await drawer.show();
+    }
   }
 
   openMobileMusic() {
@@ -873,7 +844,7 @@ export class AppHome extends LitElement {
     );
     const openButton = this.shadowRoot?.querySelector('#mobile-open');
 
-    console.log("drawer", drawer);
+    console.log('drawer', drawer);
 
     if (drawer) {
       openButton?.addEventListener('click', () => drawer.show());
@@ -889,28 +860,42 @@ export class AppHome extends LitElement {
 
       <div id="mainGrid">
         <div id="controlBar">
+            <sl-dropdown id="settingsGroup">
+              <sl-button slot="trigger" caret>
+                <sl-icon src="/assets/settings-outline.svg"></sl-icon>
+              </sl-button>
+              <sl-menu>
+                <sl-menu-item @click="${() => this.customizeThemeColor()}">
+                 Customize Theme
+                </sl-menu-item>
+                <sl-menu-item>Clear All Storage</sl-menu-item>
+              </sl-menu>
+            </sl-dropdown>
+
           ${this.music && this.music.length > 0
             ? html`
-              <sl-button-group>
-                <sl-button variant="primary">Add Music</sl-button>
-                <sl-dropdown placement="bottom-end">
-                  <sl-button slot="trigger" variant="primary" caret></sl-button>
-                  <sl-menu>
-                    <sl-menu-item @click="${() => this.add("directory")}">Add Folder</sl-menu-item>
-                    <sl-menu-item @click="${() => this.add("file")}">Add File</sl-menu-item>
-                  </sl-menu>
-                </sl-dropdown>
-              </sl-button-group>
+                  <sl-dropdown placement="bottom-end">
+                    <sl-button
+                      slot="trigger"
+                      variant="primary"
+                      caret
+                    >
+                    Add Music
+                  </sl-button>
+                    <sl-menu>
+                      <sl-menu-item @click="${() => this.add('directory')}"
+                        >Add Folder</sl-menu-item
+                      >
+                      <sl-menu-item @click="${() => this.add('file')}"
+                        >Add File</sl-menu-item
+                      >
+                    </sl-menu>
+                  </sl-dropdown>
               `
             : null}
         </div>
 
         <div class=${classMap({ playing: !this.playing })} id="center">
-          <section id="sideMenu">
-            <sl-button href="/">My Music</sl-button>
-            <sl-button href="/">Settings</sl-button>
-          </section>
-
           <section id="musicList">
             <h2>Music</h2>
 
@@ -932,7 +917,6 @@ export class AppHome extends LitElement {
                             .folderSongs=${song.folderSongs}
                             @load-song="${($event: any) =>
                               this.loadSong($event.detail.song)}"
-
                             @reload="${() => this.load()}"
                           ></music-item>
                         `
@@ -942,15 +926,15 @@ export class AppHome extends LitElement {
                 `
               : html`<div id="preview">
                   ${this.playing === false
-                  ? html`<sl-animation
-                      name="fadeIn"
-                      easing="ease-in-out"
-                      duration="800"
-                      iterations="1"
-                      play
-                      ><img src="/assets/playing-graphic.svg"
-                    /></sl-animation>`
-                  : null}
+                    ? html`<sl-animation
+                        name="fadeIn"
+                        easing="ease-in-out"
+                        duration="800"
+                        iterations="1"
+                        play
+                        ><img src="/assets/playing-graphic.svg"
+                      /></sl-animation>`
+                    : null}
 
                   <sl-button
                     size="small"
@@ -963,15 +947,15 @@ export class AppHome extends LitElement {
 
           <!--<section id="visuals">
             ${this.playing === false
-              ? html`<sl-animation
-                  name="fadeIn"
-                  easing="ease-in-out"
-                  duration="800"
-                  iterations="1"
-                  play
-                  ><img src="/assets/playing-graphic.svg"
-                /></sl-animation>`
-              : null}
+            ? html`<sl-animation
+                name="fadeIn"
+                easing="ease-in-out"
+                duration="800"
+                iterations="1"
+                play
+                ><img src="/assets/playing-graphic.svg"
+              /></sl-animation>`
+            : null}
             ${this.playing === true ? html`<canvas></canvas>` : null}
           </section>-->
         </div>
@@ -997,9 +981,11 @@ export class AppHome extends LitElement {
                         @pause="${() => this.pause()}"
                       ></media-controls>
 
-                      <sl-button @click="${() => this.openVisuals()}">
-                        <sl-icon src="/assets/up-arrow.svg"></sl-icon>
-                      </sl-button>
+                      <sl-tooltip content="Click to open visuals">
+                        <sl-button @click="${() => this.openVisuals()}">
+                          <sl-icon src="/assets/up-arrow.svg"></sl-icon>
+                        </sl-button>
+                      </sl-tooltip>
                     </div>
 
                     <sl-button-group>
@@ -1037,9 +1023,22 @@ export class AppHome extends LitElement {
                       </sl-button>
                     </sl-button-group>
 
-                    <sl-button ?disabled="${!this.playing}" @click="${() => this.share()}">
-                      <sl-icon src="/assets/icons/share-outline.svg"></sl-icon>
-                    </sl-button>
+                    <sl-button-group>
+                      <sl-tooltip content="Click to open mini-player">
+                        <sl-button @click="${() => this.enterMiniPlayer()}">
+                          <sl-icon src="/assets/mini-outline.svg"></sl-icon>
+                        </sl-button>
+                      </sl-tooltip>
+
+                      <sl-button
+                        ?disabled="${!this.playing}"
+                        @click="${() => this.share()}"
+                      >
+                        <sl-icon
+                          src="/assets/icons/share-outline.svg"
+                        ></sl-icon>
+                      </sl-button>
+                    </sl-button-group>
                   </div>
                 `
               : null}
@@ -1053,9 +1052,8 @@ export class AppHome extends LitElement {
           >Open Music</sl-button
         >
 
-        <sl-drawer
-          placement="bottom" class="visual-panel">
-          ${this.playing === true ? html`<canvas></canvas>` : "Nothing Playing..."}
+        <sl-drawer placement="bottom" class="visual-panel">
+          <canvas></canvas>
         </sl-drawer>
 
         <sl-drawer
@@ -1078,6 +1076,10 @@ export class AppHome extends LitElement {
                 )
               : null}
           </ul>
+        </sl-drawer>
+
+        <sl-drawer id="theme-settings-drawer" placement="end" label="Theme Settings">
+          <theme-settings></theme-settings>
         </sl-drawer>
       </div>
     `;

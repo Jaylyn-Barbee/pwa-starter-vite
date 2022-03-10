@@ -49,7 +49,7 @@ export class MediaControls extends LitElement {
           () => {
             this.doEvent('stop');
           },
-        ]
+        ],
       ];
 
       for (const [action, handler] of actionHandlers) {

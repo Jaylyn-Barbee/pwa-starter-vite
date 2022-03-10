@@ -1,10 +1,10 @@
-import { directoryOpen, fileOpen } from "browser-fs-access";
+import { directoryOpen, fileOpen } from 'browser-fs-access';
 
 let musicLibDir = undefined;
 
 export const loadMusic = async () => {
   try {
-    if (navigator.storage && "getDirectory" in navigator.storage) {
+    if (navigator.storage && 'getDirectory' in navigator.storage) {
       const root = await navigator.storage.getDirectory();
       const directoryHandleOrUndefined = root;
 
@@ -12,11 +12,10 @@ export const loadMusic = async () => {
         musicLibDir = directoryHandleOrUndefined;
         return musicLibDir;
       }
-    }
-    else {
+    } else {
       const root = await directoryOpen({
         recursive: false,
-        startIn: "music"
+        startIn: 'music',
       });
 
       const directoryHandleOrUndefined = root;
@@ -32,8 +31,8 @@ export const loadMusic = async () => {
   }
 };
 
-export async function addNewMusic(type: "file" | "directory") {
-  if (type === "directory") {
+export async function addNewMusic(type: 'file' | 'directory') {
+  if (type === 'directory') {
     /*const dirHandle = await (window as any).showDirectoryPicker();
     musicLibDir = dirHandle;
     console.log("musicLibDir", musicLibDir);
@@ -42,20 +41,19 @@ export async function addNewMusic(type: "file" | "directory") {
     return dirHandle;*/
     const dirHandle = await directoryOpen({
       recursive: false,
-      startIn: "music"
+      startIn: 'music',
     });
 
-    console.log(dirHandle)
+    console.log(dirHandle);
 
     const handleObject = {
-      kind: "directory",
-      name: dirHandle[0]?.directoryHandle?.name || ""
-    }
+      kind: 'directory',
+      name: dirHandle[0]?.directoryHandle?.name || '',
+    };
 
     await addMusicToLib(dirHandle[0].directoryHandle || handleObject, type);
     return dirHandle[0].directoryHandle || handleObject;
-  }
-  else if (type === "file" && "showOpenFilePicker" in window) {
+  } else if (type === 'file' && 'showOpenFilePicker' in window) {
     /*const fileHandle = await (window as any).showOpenFilePicker();
     console.log("fileHandle", fileHandle);
     await addMusicToLib(fileHandle, type);
@@ -63,43 +61,27 @@ export async function addNewMusic(type: "file" | "directory") {
 
     /*const fileHandle1 = await (window as any).showOpenFilePicker();
     console.log("fileHandle1", fileHandle1);*/
-
-    try {
-      const fileHandle = await fileOpen({
-        mimeTypes: ["audio/*"],
-      });
-
-      console.log("fileHandle", fileHandle);
-
-      const handleObject = {
-        kind: "file",
-        name: fileHandle.name,
-      }
-
-      await addMusicToLib(fileHandle.handle || handleObject, type);
-      return fileHandle.handle || handleObject;
-    }
-    catch (err) {
-        const root = await navigator.storage.getDirectory();
-
-        const fileHandle = await root.getFileHandle("music.mp3", {
-          create: true
-        });
-
-        console.log("fileHandle safari", fileHandle);
-
-        await addMusicToLib(fileHandle, type);
-        return fileHandle;
-    }
-  }
-  else {
-    const root = await navigator.storage.getDirectory();
-
-    const fileHandle = await root.getFileHandle("music.mp3", {
-      create: true
+    const fileHandle = await fileOpen({
+      mimeTypes: ['audio/*'],
     });
 
-    console.log("fileHandle safari", fileHandle);
+    console.log('fileHandle', fileHandle);
+
+    const handleObject = {
+      kind: 'file',
+      name: fileHandle.name,
+    };
+
+    await addMusicToLib(fileHandle.handle || handleObject, type);
+    return fileHandle.handle || handleObject;
+  } else {
+    const root = await navigator.storage.getDirectory();
+
+    const fileHandle = await root.getFileHandle('music.mp3', {
+      create: true,
+    });
+
+    console.log('fileHandle safari', fileHandle);
 
     await addMusicToLib(fileHandle, type);
     return fileHandle;
@@ -109,15 +91,15 @@ export async function addNewMusic(type: "file" | "directory") {
 export async function removeFromLib(handle: any, rootDir?: any): Promise<void> {
   return new Promise(async (resolve) => {
     if (rootDir) {
-      console.log("rootDir", rootDir);
-      await rootDir.removeEntry(handle.name, { recursive: true});
+      console.log('rootDir', rootDir);
+      await rootDir.removeEntry(handle.name, { recursive: true });
 
       const root = await (navigator.storage as any).getDirectory();
       const newDirHandle = await root.getDirectoryHandle(rootDir.name, {
         create: true,
       });
 
-      console.log("newDirHandle", newDirHandle);
+      console.log('newDirHandle', newDirHandle);
 
       if (newDirHandle) {
         for await (const newEntry of rootDir.values()) {
@@ -137,8 +119,7 @@ export async function removeFromLib(handle: any, rootDir?: any): Promise<void> {
 
         resolve();
       }
-    }
-    else {
+    } else {
       const root = await (navigator.storage as any).getDirectory();
       await root.removeEntry(handle.name, { recursive: true });
 
@@ -147,7 +128,7 @@ export async function removeFromLib(handle: any, rootDir?: any): Promise<void> {
   });
 }
 
-export async function addMusicToLib(handle: any, type: "file" | "directory") {
+export async function addMusicToLib(handle: any, type: 'file' | 'directory') {
   console.log('addMusicTolib', handle.kind);
   /*for await (const entry of dirHandle.values()) {
     console.log('entry', entry);
@@ -186,7 +167,7 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
     }
   }*/
 
-  if (type === "file" && "showOpenFilePicker" in window) {
+  if (type === 'file' && 'showOpenFilePicker' in window) {
     console.log('adding file', handle);
     const root = await (navigator.storage as any).getDirectory();
     const newFileHandle = await root.getFileHandle(handle.name, {
@@ -198,17 +179,15 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
     await writable.write(await handle.getFile());
     // Close the file and write the contents to disk.
     await writable.close();
-  }
-  else if (type === "directory" && "showDirectoryPicker" in window) {
+  } else if (type === 'directory' && 'showDirectoryPicker' in window) {
     console.log('adding directory');
     const root = await (navigator.storage as any).getDirectory();
 
     for await (const newEntry of handle.values()) {
       if (newEntry.kind === 'file') {
-        const newFileHandle = await root.getFileHandle(
-          newEntry.name,
-          { create: true }
-        );
+        const newFileHandle = await root.getFileHandle(newEntry.name, {
+          create: true,
+        });
 
         const writable = await newFileHandle.createWritable();
         // Write the contents of the file to the stream.
@@ -217,8 +196,7 @@ export async function addMusicToLib(handle: any, type: "file" | "directory") {
         await writable.close();
       }
     }
-  }
-  else {
+  } else {
     // for safari
 
     const writable = await handle.createWritable();

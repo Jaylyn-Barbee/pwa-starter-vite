@@ -4,9 +4,9 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { removeFromLib } from '../services/music-library';
 
-import { shareSong } from "../services/utils";
+import { shareSong } from '../services/utils';
 
-import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/components/card/card.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/components/card/card.js';
 
 @customElement('music-item')
 export class MusicItem extends LitElement {
@@ -47,6 +47,10 @@ export class MusicItem extends LitElement {
                 margin-bottom: 10px;
                 width: 100%;
                 --sl-panel-background-color: #30303061;
+            }
+
+            sl-card [slot="image"] {
+              height: 10em;
             }
 
             sl-card [slot="footer"] {
@@ -177,11 +181,11 @@ export class MusicItem extends LitElement {
 
   protected async firstUpdated() {
     // console.log("firstUpdated");
-    console.log(this.entry.kind)
-    console.log(' got a file', this.entry.name, this.entry.kind)
+    console.log(this.entry.kind);
+    console.log(' got a file', this.entry.name, this.entry.kind);
     if (this.entry && this.kind && this.kind === 'directory') {
-      if (this.entry.name && this.entry.name.length > 0 ) {
-        console.log("expanding on load", this.kind);
+      if (this.entry.name && this.entry.name.length > 0) {
+        console.log('expanding on load', this.kind);
         await this.expandFolder(this.entry);
       }
     }
@@ -223,8 +227,8 @@ export class MusicItem extends LitElement {
 
   async removeItem(event: any, entry: any, rootDir: any) {
     event.preventDefault();
-    console.log("entry", entry);
-    console.log("rootDir", rootDir);
+    console.log('entry', entry);
+    console.log('rootDir', rootDir);
 
     if (rootDir) {
       await removeFromLib(entry, rootDir);
@@ -234,16 +238,12 @@ export class MusicItem extends LitElement {
       if (this.expanded.length === 0) {
         await rootDir.remove();
       }
-
-    }
-    else {
+    } else {
       await removeFromLib(entry);
     }
 
     const eventToPush = new CustomEvent('reload', {
-      detail: {
-
-      },
+      detail: {},
     });
     this.dispatchEvent(eventToPush);
 
@@ -255,79 +255,129 @@ export class MusicItem extends LitElement {
       <!--<li
         class=${classMap({ file: this.entry.kind === 'file' })}
       >
-        <span @click="${() => this.loadSong(this.entry)}" class=${classMap({ title: this.entry.kind === 'directory' })}
+        <span @click="${() => this.loadSong(this.entry)}" class=${classMap({
+        title: this.entry.kind === 'directory',
+      })}
           >${this.entry.name}</span
         >
 
-        ${this.entry.kind === "file" ? html`<div id="inner-controls">
-          <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, this.entry)}"></sl-icon-button>
-          <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, this.entry, undefined)}"></sl-icon-button>
-        </div>` : null}
+        ${this.entry.kind === 'file'
+        ? html`<div id="inner-controls">
+            <sl-icon-button
+              src="/assets/icons/share-outline.svg"
+              style="font-size: 1.5rem;"
+              @click="${($event: any) => this.share($event, this.entry)}"
+            ></sl-icon-button>
+            <sl-icon-button
+              variant="danger"
+              src="/assets/trash-outline.svg"
+              style="font-size: 1.5rem;"
+              @click="${($event: any) =>
+                this.removeItem($event, this.entry, undefined)}"
+            ></sl-icon-button>
+          </div>`
+        : null}
 
         ${this.expanded && this.expanded.length > 0
-          ? html`<ul class="innerList">
-              ${this.expanded.map(
-                (entry) =>
-                  html`
-                    <li
-                      aria-role="button"
+        ? html`<ul class="innerList">
+            ${this.expanded.map(
+              (entry) =>
+                html`
+                  <li aria-role="button">
+                    <span @click="${() => this.loadSong(entry)}"
+                      >${entry.name}</span
                     >
-                      <span @click="${() => this.loadSong(entry)}">${entry.name}</span>
 
-                      <div id="inner-controls">
-                        <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, entry)}"></sl-icon-button>
-                        <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, entry, this.entry)}"></sl-icon-button>
-                      </div>
-                    </li>
-                  `
-              )}
-            </ul>`
-          : null}
+                    <div id="inner-controls">
+                      <sl-icon-button
+                        src="/assets/icons/share-outline.svg"
+                        style="font-size: 1.5rem;"
+                        @click="${($event: any) => this.share($event, entry)}"
+                      ></sl-icon-button>
+                      <sl-icon-button
+                        variant="danger"
+                        src="/assets/trash-outline.svg"
+                        style="font-size: 1.5rem;"
+                        @click="${($event: any) =>
+                          this.removeItem($event, entry, this.entry)}"
+                      ></sl-icon-button>
+                    </div>
+                  </li>
+                `
+            )}
+          </ul>`
+        : null}
       </li>-->
 
-      ${
-        this.kind && this.entry.kind === 'directory' && this.entry && this.entry.name.length > 0 ? html `
-          <div class="directoryFolder">
-            <span class=${classMap({ title: this.entry.kind === 'directory' })}
-              >${this.entry.name}</span
-            >
-            <ul class="innerList">
+      ${this.kind &&
+      this.entry.kind === 'directory' &&
+      this.entry &&
+      this.entry.name.length > 0
+        ? html`
+            <div class="directoryFolder">
+              <span
+                class=${classMap({ title: this.entry.kind === 'directory' })}
+                >${this.entry.name}</span
+              >
+              <ul class="innerList">
                 ${this.expanded.map(
                   (entry) =>
                     html`
-                      <sl-card
-
-                      >
+                      <sl-card>
                         <span>${entry.name}</span>
 
                         <div slot="footer" id="inner-controls">
-                          <sl-icon-button src="/assets/play-outline.svg" style="font-size: 1.5rem;" @click="${() => this.loadSong(entry)}"></sl-icon-button>
-                          <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, entry)}"></sl-icon-button>
-                          <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, entry, this.entry)}"></sl-icon-button>
+                          <sl-icon-button
+                            src="/assets/play-outline.svg"
+                            style="font-size: 1.5rem;"
+                            @click="${() => this.loadSong(entry)}"
+                          ></sl-icon-button>
+                          <sl-icon-button
+                            src="/assets/icons/share-outline.svg"
+                            style="font-size: 1.5rem;"
+                            @click="${($event: any) =>
+                              this.share($event, entry)}"
+                          ></sl-icon-button>
+                          <sl-icon-button
+                            variant="danger"
+                            src="/assets/trash-outline.svg"
+                            style="font-size: 1.5rem;"
+                            @click="${($event: any) =>
+                              this.removeItem($event, entry, this.entry)}"
+                          ></sl-icon-button>
                         </div>
                       </sl-card>
                     `
                 )}
               </ul>
-          </div>
-        ` :  html`
-        <sl-card
-        class="file"
-      >
-      <img
-        slot="image"
-        src="/assets/music-icon.svg"
-      >
-          <span class="music-title">${this.entry.name}</span>
+            </div>
+          `
+        : html`
+            <sl-card class="file">
+              <img slot="image" src="/assets/musical-notes-outline.svg" />
+              <span class="music-title">${this.entry.name}</span>
 
-          <div slot="footer" id="inner-controls">
-          <sl-icon-button src="/assets/play-outline.svg" style="font-size: 1.5rem;" @click="${() => this.loadSong(this.entry)}"></sl-icon-button>
-            <sl-icon-button src="/assets/icons/share-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.share($event, this.entry)}"></sl-icon-button>
-            <sl-icon-button variant="danger" src="/assets/trash-outline.svg" style="font-size: 1.5rem;" @click="${($event: any) => this.removeItem($event, this.entry, undefined)}"></sl-icon-button>
-          </div>
-        </sl-card>
-        `
-      }
+              <div slot="footer" id="inner-controls">
+                <sl-icon-button
+                  src="/assets/play-outline.svg"
+                  style="font-size: 1.5rem;"
+                  @click="${() => this.loadSong(this.entry)}"
+                ></sl-icon-button>
+                <sl-icon-button
+                  src="/assets/icons/share-outline.svg"
+                  style="font-size: 1.5rem;"
+                  @click="${($event: any) => this.share($event, this.entry)}"
+                ></sl-icon-button>
+                <sl-icon-button
+                  variant="danger"
+                  src="/assets/trash-outline.svg"
+                  style="font-size: 1.5rem;"
+                  @click="${($event: any) =>
+                    this.removeItem($event, this.entry, undefined)}"
+                ></sl-icon-button>
+              </div>
+            </sl-card>
+          `}
     `;
   }
 }
