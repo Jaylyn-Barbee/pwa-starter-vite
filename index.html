@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>JustMusic</title>
+    <title>Sync'd</title>
 
     <base href="/" />
 
@@ -11,35 +11,60 @@
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"
     />
-    <meta name="description" content="Play all of your music with JustMusic, your cross-platform music player." />
-
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f0d23" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f3" />
+    <meta name="description" content="An easy to use event calendar for busy groups to plan time with one another!" />
+    <meta name="theme-color" content="#DDBDD5" />
 
     <!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="JustMusic" />
+    <meta name="apple-mobile-web-app-title" content="Sync'd" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
     <!-- Imports an icon to represent the document. -->
-    <link rel="icon" href="icons/icon_24.png" type="image/x-icon" />
-
-    <!-- Import Shoelace -->
-    <link rel="stylesheet" media="(prefers-color-scheme:light)" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/themes/light.css">
-    <link rel="stylesheet" media="(prefers-color-scheme:dark)"
-      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.71/dist/themes/dark.css"
-      onload="document.documentElement.classList.add('sl-theme-dark');">
+    <link rel="icon" href="assets/icons/logo_128.png" type="image/x-icon" />
 
     <!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. -->
     <link rel="manifest" href="manifest.json" />
 
-    <script type="module" src="/src/app-index.ts"></script>
+    <!-- Microsoft Fast Components https://www.fast.design/docs/components/getting-started-->
+    <script
+      type="module"
+      src="https://unpkg.com/@microsoft/fast-components"
+    ></script>
+
+    <!-- Stuff From Graph website -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk.js"></script>
+    <!-- polyfilling promise -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.auto.min.js"></script>
+
+    <!-- polyfilling fetch -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch/dist/fetch.umd.min.js"></script>
+
+    <!-- depending on your browser you might wanna include babel polyfill -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@babel/polyfill@7.4.4/dist/polyfill.min.js"></script>
+
+    <!-- A stylesheet to design the pages. -->
+    <link href="styles/global.css" rel="stylesheet" />
+
+    <!--<script type="module" src="/build/src/script/pages/app-index.js"></script>-->
+    <script type="module" src="src/script/pages/app-index.ts"></script>
+
+
   </head>
 
   <body>
     <!-- Our app-index web component. This component is defined in src/pages/app-index.ts-->
-    <app-index></app-index>
+    <fast-design-system-provider use-defaults>
+      <app-index></app-index>
+    </fast-design-system-provider>
 
-    <script src="registerSW.js"></script>
+    <script type="module" src="/pwabuilder-sw.ts"></script>
+
+    <script>
+      navigator.serviceWorker.register("/pwabuilder-sw.js");
+    </script>
+
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
   </body>
 </html>

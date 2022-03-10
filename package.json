@@ -12,6 +12,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@azure/identity": "^2.0.1",
+    "@microsoft/mgt": "^2.3.0",
+    "@microsoft/microsoft-graph-client": "^3.0.0",
+    "firebase": "^9.6.0",
+    "isomorphic-fetch": "^3.0.0",
     "@fluentui/web-components": "^2.2.2",
     "@pwabuilder/pwainstall": "^1.6.7",
     "@vaadin/router": "^1.7.4",
